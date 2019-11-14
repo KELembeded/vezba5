@@ -1,14 +1,12 @@
-//#include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
-#include <linux/fs.h>	//register_chrdev_region, fops ... char support
+#include <linux/fs.h>
 #include <linux/types.h>
-#include <linux/kdev_t.h>
 #include <linux/cdev.h>
 
 MODULE_LICENSE("Dual BSD/GPL");
 
-dev_t dev_id;
+dev_t my_dev_id;
 struct cdev *my_cdev;
 
 int hello_open(struct inode *pinode, struct file *pfile);
@@ -53,34 +51,34 @@ ssize_t hello_write(struct file *pfile, const char __user *buffer, size_t length
 static int __init hello_init(void)
 {
 	int ret = 0;
-	dev_id = MKDEV(240,0);
-	ret = register_chrdev_region(dev_id,1,"Hello");
+	my_dev_id = MKDEV(240,0);
+	ret = register_chrdev_region(my_dev_id,1,"Hello");
 	if(ret)
 	{
 		printk(KERN_ERR "failed to register char device\n");
 		return ret;
 	}
+	printk(KERN_INFO "char device registered\n");
 
 	my_cdev = cdev_alloc();
 	my_cdev -> owner = THIS_MODULE;
 	my_cdev -> ops = &my_fops;
-	ret = cdev_add(my_cdev,dev_id,1);
+	ret = cdev_add(my_cdev,my_dev_id,1);
 	if(ret)
 	{
-		unregister_chrdev_region(dev_id,1);
+		unregister_chrdev_region(my_dev_id,1);
 		printk(KERN_ERR "failed to add char device\n");
 		return ret;
 	}
-
+	printk(KERN_INFO "char device added\n");
 	printk(KERN_INFO "Hello, world\n");
 	return 0;
 }
 
 static void __exit hello_exit(void)
 {
-	unregister_chrdev_region(dev_id,1);
 	cdev_del(my_cdev);
-
+	unregister_chrdev_region(my_dev_id,1);
 	printk(KERN_INFO "Goodbye, cruel world\n");
 }
 
