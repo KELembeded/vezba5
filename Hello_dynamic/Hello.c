@@ -2,6 +2,7 @@
 #include <linux/init.h>
 #include <linux/fs.h>	
 #include <linux/types.h>
+#include <linux/device.h>
 #include <linux/cdev.h>
 
 MODULE_LICENSE("Dual BSD/GPL");
